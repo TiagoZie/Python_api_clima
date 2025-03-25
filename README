@@ -1,0 +1,20 @@
+## Projeto simples de trazer o clima de uma rota
+
+## Funcionalidades
+
+-Escolher local de inicio e destino (funcionando)
+-usando a api do google maps retornar a rota (funcionando)
+-Usando a api do openweather retornar o clima das cidades da rota (funcionando)
+-usando a api do groq retornar um texto simples com dicas de roupas, informações do clima, monumentos para passar entre outros nas cidades (implementação em processo)
+
+## como usar
+
+NO TERMINAL 
+-source .venv/bin/activate
+-Python app.py
+-ADICIONAR AS APIS NO LUGAR DO COMENTÁRIO EM APP.PY
+
+Caso de erro:
+(ainda no .venv)
+-pip install requests
+-pip install polyline
