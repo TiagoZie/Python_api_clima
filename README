@@ -8,13 +8,19 @@
 -usando a api do groq retornar um texto simples com dicas de roupas, informações do clima, monumentos para passar entre outros nas cidades (implementação em processo)
 
 ## como usar
+CRIAR UM ARQUIVO .env dentro da raiz do projeto
+-Dentro dele colar a seguinte linha:
+    GOOGLE_MAPS_API_KEY=
+    OPENWEATHER_API_KEY=
+    GROQ_API_KEY=
+-Após isso colar as chaves das APIs no mesmo.
 
 NO TERMINAL 
 -source .venv/bin/activate
 -Python app.py
--ADICIONAR AS APIS NO LUGAR DO COMENTÁRIO EM APP.PY
 
 Caso de erro:
 (ainda no .venv)
 -pip install requests
 -pip install polyline
+-pip install dotenv

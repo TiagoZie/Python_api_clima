@@ -1,0 +1,12 @@
+# Ignorar variáveis de ambiente
+.env
+.env.*
+
+# Ignorar configurações de IDE/Editores
+.vscode/
+.idea/
+
+# Ignorar arquivos temporários e cache
+__pycache__/
+*.py[cod]
+*.log
