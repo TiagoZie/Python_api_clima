@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Planejador de Viagem</title>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:,">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f6fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #summary {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            line-height: 1.6;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛣️ Planejador de Viagem Inteligente</h1>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="origem" placeholder="Cidade de origem">
+            <input type="text" id="destino" placeholder="Cidade de destino">
+            <button onclick="planViagem()">Planejar Viagem</button>
+        </div>
+
+        <div id="map"></div>
+        <div id="summary"></div>
+    </div>
+
+    <script>
+        let map;
+        const API_KEY = '{{ google_maps_key }}';
+
+        function initMap() {
+            const mapElement = document.getElementById('map');
+            if (!mapElement) {
+                console.error('Elemento do mapa não encontrado');
+                return;
+            }
+            map = new google.maps.Map(mapElement, {
+                center: { lat: -15.788497, lng: -47.879873 },
+                zoom: 5
+            });
+        }
+
+        async function planViagem() {
+            try {
+                const origem = document.getElementById('origem').value;
+                const destino = document.getElementById('destino').value;
+                
+                if (!origem || !destino) {
+                    throw new Error('Preencha origem e destino');
+                }
+
+                const response = await fetch('/plan_viagem', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ origem, destino })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Erro no servidor');
+                }
+
+                const data = await response.json();
+
+                if (!data.polyline) {
+                    throw new Error('Rota inválida do servidor');
+                }
+
+                let decodedPath;
+                try {
+                    decodedPath = google.maps.geometry.encoding.decodePath(data.polyline);
+                } catch (e) {
+                    throw new Error('Formato da rota inválido');
+                }
+
+                // Reinicializar o mapa
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: decodedPath[0],
+                    zoom: 7
+                });
+
+                new google.maps.Polyline({
+                    path: decodedPath,
+                    map: map,
+                    strokeColor: '#3498db',
+                    strokeWeight: 4
+                });
+
+                const bounds = new google.maps.LatLngBounds();
+                decodedPath.forEach(point => bounds.extend(point));
+                map.fitBounds(bounds);
+
+                document.getElementById('summary').innerHTML = data.summary.replace(/\n/g, '<br>');
+            } catch (error) {
+                console.error('Erro:', error);
+                alert(error.message || 'Erro ao processar a requisição');
+            }
+        }
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&libraries=geometry&callback=initMap">
+    </script>
+</body>
+</html>

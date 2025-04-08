@@ -1,17 +1,20 @@
+from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 import os
 import requests
 import polyline
+from dotenv import load_dotenv
 from requests.exceptions import RequestException
 
-from dotenv import load_dotenv
+load_dotenv()
+app = Flask(__name__)
+CORS(app, resources={r"/plan_viagem": {"origins": "*"}})
 
-load_dotenv()  
 GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
 OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 def get_route(origin, destination):
-    """Obtém a rota da API do Google Maps Directions com tratamento robusto de erros."""
     url = "https://maps.googleapis.com/maps/api/directions/json"
     params = {
         'origin': origin,
@@ -31,7 +34,6 @@ def get_route(origin, destination):
         return None
 
 def extract_route_coordinates(route):
-    """Extrai coordenadas de todos os passos da rota para máxima precisão."""
     coordinates = []
     for leg in route.get('legs', []):
         for step in leg.get('steps', []):
@@ -40,12 +42,10 @@ def extract_route_coordinates(route):
     return coordinates
 
 def select_waypoints(coordinates, max_points=15):
-    """Seleciona waypoints garantindo um número máximo para evitar excesso de chamadas."""
     step = max(1, len(coordinates) // max_points)
     return coordinates[::step]
 
 def get_weather(lat, lon):
-    """Obtém dados climáticos com tratamento avançado de erros."""
     url = "http://api.openweathermap.org/data/2.5/weather"
     params = {
         'lat': lat,
@@ -69,7 +69,6 @@ def get_weather(lat, lon):
         return None
 
 def generate_travel_summary(route_info, weather_reports):
-    """Gera um resumo narrativo da viagem usando IA com fallback para dados brutos."""
     if not route_info.get('legs'):
         return "Não foi possível gerar o resumo: dados da rota incompletos."
     
@@ -114,32 +113,37 @@ def generate_travel_summary(route_info, weather_reports):
     except Exception as e:
         return f"{base_summary}\n\n[Erro na geração do relatório: {str(e)}]"
 
-def main():
-    """Fluxo principal do programa com interface amigável."""
-    print("\n" + "="*40)
-    print(" Planejador de Viagem Inteligente ")
-    print("="*40 + "\n")
-    
-    origin = input("📍 Cidade de origem: ").strip()
-    destination = input("🎯 Cidade de destino: ").strip()
-    
-    if not (route := get_route(origin, destination)):
-        print("\n🚨 Erro: Não foi possível calcular a rota. Verifique os locais informados.")
-        return
+@app.route('/')
+def index():
+    return render_template('index.html', 
+                          google_maps_key=os.getenv("GOOGLE_MAPS_API_KEY"))
 
+@app.route('/plan_viagem', methods=['POST'])
+def plan_viagem():
+    data = request.get_json()
+    origin = data.get('origem')
+    destination = data.get('destino')
+    
+    if not origin or not destination:
+        return jsonify({"error": "Parâmetros 'origem' e 'destino' são obrigatórios"}), 400
+    
+    route = get_route(origin, destination)
+    if not route:
+        return jsonify({"error": "Não foi possível calcular a rota"}), 400
+    
     coordinates = extract_route_coordinates(route)
     waypoints = select_waypoints(coordinates)
     
-    print(f"\n⏳ Coletando dados meteorológicos para {len(waypoints)} paradas...")
     weather_reports = [report for report in (get_weather(lat, lon) for lat, lon in waypoints) if report]
     
-    print("\n✨ Gerando relatório final...")
     summary = generate_travel_summary(route, weather_reports)
     
-    print("\n" + "="*40)
-    print(" Relatório de Viagem ")
-    print("="*40)
-    print(summary)
+    return jsonify({
+        "polyline": route.get('overview_polyline', {}).get('points', ''),
+        "summary": summary,
+        "origin": origin,
+        "destination": destination
+    })
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    app.run(debug=True)

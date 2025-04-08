@@ -7,6 +7,11 @@
 -Usando a api do openweather retornar o clima das cidades da rota (funcionando)
 -usando a api do groq retornar um texto simples com dicas de roupas, informações do clima, monumentos para passar entre outros nas cidades (implementação em processo)
 
+## Bibliotecas usadas
+-Dotenv
+-Polyline
+-Requests
+
 ## como usar
 CRIAR UM ARQUIVO .env dentro da raiz do projeto
 -Dentro dele colar a seguinte linha:
@@ -15,12 +20,17 @@ CRIAR UM ARQUIVO .env dentro da raiz do projeto
     GROQ_API_KEY=
 -Após isso colar as chaves das APIs no mesmo.
 
-NO TERMINAL 
+NO TERMINAL LINUX
 -source .venv/bin/activate
+-pip install -r requirements.txt
 -Python app.py
 
-Caso de erro:
+NO TERMINAL WINDOWS (POWERSHELL)
+-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+-python -m venv .venv
+-.venv\Scripts\activate
 (ainda no .venv)
--pip install requests
--pip install polyline
--pip install dotenv
+-pip install -r requirements.txt
+
+
+DESATIVAR AS EXTENSÔES BLOQUEADORES DE ANUNCIOS 
