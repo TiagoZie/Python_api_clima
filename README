@@ -6,11 +6,15 @@
 -usando a api do google maps retornar a rota (funcionando)
 -Usando a api do openweather retornar o clima das cidades da rota (funcionando)
 -usando a api do groq retornar um texto simples com dicas de roupas, informações do clima, monumentos para passar entre outros nas cidades (implementação em processo)
+-usando flask criar uma interface básica (em andamento)
 
 ## Bibliotecas usadas
 -Dotenv
 -Polyline
 -Requests
+-Flask
+-Flask-cors
+-Request.Expections
 
 ## como usar
 CRIAR UM ARQUIVO .env dentro da raiz do projeto
@@ -23,7 +27,7 @@ CRIAR UM ARQUIVO .env dentro da raiz do projeto
 NO TERMINAL LINUX
 -source .venv/bin/activate
 -pip install -r requirements.txt
--Python app.py
+-flask run --port 5000 
 
 NO TERMINAL WINDOWS (POWERSHELL)
 -Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
@@ -31,6 +35,7 @@ NO TERMINAL WINDOWS (POWERSHELL)
 -.venv\Scripts\activate
 (ainda no .venv)
 -pip install -r requirements.txt
+-flask run --port 5000
 
 
 DESATIVAR AS EXTENSÔES BLOQUEADORES DE ANUNCIOS 
