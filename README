@@ -15,6 +15,7 @@
 -Flask
 -Flask-cors
 -Request.Expections
+-pymongo
 
 ## como usar
 CRIAR UM ARQUIVO .env dentro da raiz do projeto

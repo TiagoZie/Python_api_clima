@@ -3,10 +3,16 @@ from flask_cors import CORS
 import os
 import requests
 import polyline
+from pymongo import MongoClient
 from dotenv import load_dotenv
 from requests.exceptions import RequestException
+from datetime import datetime
+
 
 load_dotenv()
+client = MongoClient(os.getenv("MONGO_URL"))
+db = client["cidades"] 
+historico_collection = db["historico"]
 app = Flask(__name__)
 CORS(app, resources={r"/plan_viagem": {"origins": "*"}})
 
@@ -137,13 +143,25 @@ def plan_viagem():
     weather_reports = [report for report in (get_weather(lat, lon) for lat, lon in waypoints) if report]
     
     summary = generate_travel_summary(route, weather_reports)
-    
+    # Salvar no MongoDB
+    historico_collection.insert_one({
+        "origem": origin,
+        "destino": destination,
+        "data": datetime.now()
+    })
+
     return jsonify({
         "polyline": route.get('overview_polyline', {}).get('points', ''),
         "summary": summary,
         "origin": origin,
         "destination": destination
     })
+@app.route('/historico', methods=['GET'])
+def mostrar_historico():
+    registros = list(
+        historico_collection.find({}, {"_id": 0, "origem": 1, "destino": 1, "data": 1}).sort("data", -1)
+    )
+    return jsonify(registros)
 
 if __name__ == '__main__':
     app.run(debug=True)
