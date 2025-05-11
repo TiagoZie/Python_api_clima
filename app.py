@@ -11,6 +11,7 @@ from datetime import datetime
 
 load_dotenv()
 client = MongoClient(os.getenv("MONGO_URL"))
+client.server_info()
 db = client["cidades"] 
 historico_collection = db["historico"]
 app = Flask(__name__)
@@ -25,7 +26,9 @@ def get_route(origin, destination):
     params = {
         'origin': origin,
         'destination': destination,
-        'key': GOOGLE_MAPS_API_KEY
+        'key': GOOGLE_MAPS_API_KEY,
+        'language': 'pt-BR',
+        'region': 'br'  
     }
     try:
         response = requests.get(url, params=params, timeout=10)
@@ -74,7 +77,7 @@ def get_weather(lat, lon):
     except RequestException:
         return None
 
-def generate_travel_summary(route_info, weather_reports):
+def generate_travel_summary(route_info, weather_reports, veiculo):
     if not route_info.get('legs'):
         return "Não foi possível gerar o resumo: dados da rota incompletos."
     
@@ -85,6 +88,7 @@ def generate_travel_summary(route_info, weather_reports):
         f"**Destino:** {leg['end_address']}\n"
         f"**Distância:** {leg['distance']['text']}\n"
         f"**Duraçāo estimada:** {leg['duration']['text']}\n\n"
+        f"**Veículo:** {veiculo}\n\n"
     )
     
     if weather_reports:
@@ -102,7 +106,8 @@ def generate_travel_summary(route_info, weather_reports):
             "content": "Você é um assistente de viagem especializado em criar relatórios detalhados e acolhedores."
         }, {
             "role": "user",
-            "content": f"Transforme estes dados técnicos em um guia de viagem completo:\n\n{base_summary}"
+            "content": f"Transforme estes dados técnicos em um guia de viagem completo considerando que o meio de transporte será um(a):\n\n{base_summary}"
+
         }],
         "temperature": 0.5
     }
@@ -129,11 +134,12 @@ def plan_viagem():
     data = request.get_json()
     origin = data.get('origem')
     destination = data.get('destino')
+    veiculo = data.get('veiculo', 'carro')
     
     if not origin or not destination:
         return jsonify({"error": "Parâmetros 'origem' e 'destino' são obrigatórios"}), 400
     
-    route = get_route(origin, destination)
+    route = get_route(origin, destination)  
     if not route:
         return jsonify({"error": "Não foi possível calcular a rota"}), 400
     
@@ -142,11 +148,13 @@ def plan_viagem():
     
     weather_reports = [report for report in (get_weather(lat, lon) for lat, lon in waypoints) if report]
     
-    summary = generate_travel_summary(route, weather_reports)
+    summary = generate_travel_summary(route, weather_reports, veiculo)
+
     # Salvar no MongoDB
     historico_collection.insert_one({
         "origem": origin,
         "destino": destination,
+        "veiculo": veiculo,
         "data": datetime.now()
     })
 
@@ -154,8 +162,10 @@ def plan_viagem():
         "polyline": route.get('overview_polyline', {}).get('points', ''),
         "summary": summary,
         "origin": origin,
-        "destination": destination
+        "destination": destination,
+        "veiculo": veiculo
     })
+
 @app.route('/historico', methods=['GET'])
 def mostrar_historico():
     registros = list(

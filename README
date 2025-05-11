@@ -39,4 +39,10 @@ NO TERMINAL WINDOWS (POWERSHELL)
 -flask run --port 5000
 
 
+COMANDOS UTEIS PARA O VENV:
+-deactivate (para sair do venv)
+-rm -rf .venv (para apagar o venv, para resolver problemas)
+-python3 -m venv .venv (criar venv)
+-rm -rf __pycache__/ (as vezes  os python lembra caminhos)
+
 DESATIVAR AS EXTENSÔES BLOQUEADORES DE ANUNCIOS 
