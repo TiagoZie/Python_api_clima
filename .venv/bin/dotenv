@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/home/tiagozie/Documents/Projetos Facul/projetoaulapython/Python_api_clima/.venv/bin/python" "$0" "$@"
+'''exec' "/home/tiagozie/Documents/Projetos Facul/projetoaulapython/Python_api_clima/.venv/bin/python3" "$0" "$@"
 ' '''
 # -*- coding: utf-8 -*-
 import re

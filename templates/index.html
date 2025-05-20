@@ -1,13 +1,31 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>Planejador de Viagem</title>
     <meta charset="UTF-8">
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        #summary {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            line-height: 1.6;
+        }
+        #summary h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        #summary strong {
+            font-weight: bold;
+        }
+        #summary ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+    </style>
 </head>
-
 <body>
     <div class="container">
         <div class="header">
@@ -25,7 +43,6 @@
             </select>
             <button onclick="planViagem()">Planejar Viagem</button>
         </div>
-
         <div id="map"></div>
         <div id="summary"></div>
     </div>
@@ -98,7 +115,8 @@
                 decodedPath.forEach(point => bounds.extend(point));
                 map.fitBounds(bounds);
 
-                document.getElementById('summary').innerHTML = data.summary.replace(/\n/g, '<br>');
+                // Render summary as HTML using marked
+                document.getElementById('summary').innerHTML = marked.parse(data.summary);
             } catch (error) {
                 console.error('Erro:', error);
                 alert(error.message || 'Erro ao processar a requisição');
@@ -107,7 +125,6 @@
     </script>
     <script async defer
         src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&libraries=geometry&callback=initMap">
-        </script>
+    </script>
 </body>
-
 </html>
